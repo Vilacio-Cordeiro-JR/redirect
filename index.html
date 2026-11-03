@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Verificação de segurança</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+
+  <!-- Substituído no build (build.js) com as variáveis de ambiente do Vercel -->
+  <script id="app-config" type="application/json">__APP_CONFIG__</script>
+</head>
+<body class="min-h-screen bg-[#0a1128] text-slate-200 antialiased flex items-center justify-center p-4">
+  <main class="w-full max-w-md rounded-2xl border border-white/10 bg-[#0f1b3d]/80 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+    <div class="mb-6 flex items-center gap-3">
+      <div id="icon" class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/15 text-blue-400">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-semibold text-white">Verificação de segurança</h1>
+        <p id="status" class="text-sm text-slate-400" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div id="widget" class="mb-6 flex min-h-[65px] justify-center"></div>
+
+    <button id="go" type="button" disabled
+      class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
+      <svg id="spinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"/><path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-90"/></svg>
+      <span id="go-label">Continuar</span>
+    </button>
+
+    <p id="error" class="mt-4 hidden rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300" role="alert"></p>
+    <p class="mt-6 text-center text-xs text-slate-500">Protegido por Cloudflare Turnstile</p>
+  </main>
+
+  <script type="module">
+    const REDIRECT_DELAY_MS = 1500;
+    const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+
+    const $ = (id) => document.getElementById(id);
+    const ui = {
+      status: $('status'), icon: $('icon'), go: $('go'), goLabel: $('go-label'),
+      spinner: $('spinner'), error: $('error'), widget: $('widget'),
+    };
+
+    const MESSAGES = {
+      idle:      'Preparando a verificação…',
+      verifying: 'Complete a verificação abaixo.',
+      success:   'Verificação concluída.',
+      error:     'Não foi possível verificar.',
+    };
+    const ICON_TONE = {
+      idle: 'bg-blue-500/15 text-blue-400',
+      verifying: 'bg-blue-500/15 text-blue-400',
+      success: 'bg-emerald-500/15 text-emerald-400',
+      error: 'bg-red-500/15 text-red-400',
+    };
+
+    const state = { phase: 'idle', token: null, redirecting: false, errorMsg: '' };
+
+    function render() {
+      const { phase, redirecting, errorMsg } = state;
+      ui.status.textContent = redirecting ? 'Redirecionando com segurança…' : MESSAGES[phase];
+      ui.icon.className = `flex h-11 w-11 items-center justify-center rounded-xl ${ICON_TONE[phase]}`;
+      ui.go.disabled = phase !== 'success' || redirecting;
+      ui.spinner.classList.toggle('hidden', !redirecting);
+      ui.goLabel.textContent = redirecting ? 'Redirecionando…' : 'Continuar';
+      ui.error.classList.toggle('hidden', phase !== 'error');
+      ui.error.textContent = errorMsg;
+    }
+
+    function setState(patch) { Object.assign(state, patch); render(); }
+
+    function readConfig() {
+      try {
+        const cfg = JSON.parse($('app-config').textContent);
+        const url = new URL(cfg.targetUrl);
+        if (!['https:', 'http:'].includes(url.protocol)) throw new Error('protocolo');
+        if (!cfg.siteKey) throw new Error('siteKey');
+        return { targetUrl: url.href, siteKey: cfg.siteKey };
+      } catch {
+        return null;
+      }
+    }
+
+    function loadTurnstile() {
+      return new Promise((resolve, reject) => {
+        if (window.turnstile) return resolve(window.turnstile);
+        const s = document.createElement('script');
+        s.src = TURNSTILE_SRC; s.async = true;
+        s.onload = () => resolve(window.turnstile);
+        s.onerror = () => reject(new Error('Falha ao carregar o Turnstile.'));
+        document.head.append(s);
+      });
+    }
+
+    async function init() {
+      render();
+      const config = readConfig();
+      if (!config) {
+        return setState({ phase: 'error', errorMsg: 'Serviço mal configurado. Verifique as variáveis de ambiente.' });
+      }
+
+      let widgetId;
+      try {
+        const turnstile = await loadTurnstile();
+        widgetId = turnstile.render(ui.widget, {
+          sitekey: config.siteKey,
+          theme: 'dark',
+          callback: (token) => setState({ phase: 'success', token, errorMsg: '' }),
+          'before-interactive-callback': () => setState({ phase: 'verifying' }),
+          'expired-callback': () => setState({ phase: 'verifying', token: null }),
+          'error-callback': () => setState({ phase: 'error', token: null, errorMsg: 'Erro na verificação. Recarregue a página e tente novamente.' }),
+        });
+        if (state.phase === 'idle') setState({ phase: 'verifying' });
+      } catch (err) {
+        return setState({ phase: 'error', errorMsg: err.message });
+      }
+
+      ui.go.addEventListener('click', () => {
+        if (state.phase !== 'success' || !state.token || state.redirecting) return;
+        setState({ redirecting: true });
+        setTimeout(() => window.location.replace(config.targetUrl), REDIRECT_DELAY_MS);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
