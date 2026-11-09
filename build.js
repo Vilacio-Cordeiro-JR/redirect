@@ -1,31 +1,27 @@
 const fs = require('fs');
 const path = require('path');
 
-// Lê as variáveis de ambiente injetadas pelo Vercel (ou fallback para testes locais)
-const targetUrl = process.env.TARGET_URL || 'https://exemplo.com';
-const siteKey = process.env.TURNSTILE_SITE_KEY || '1x00000000000000000000AA'; // Chave de teste do Cloudflare
+console.log('Iniciando verificação dos arquivos do PWA SCOACI...');
 
-// Objeto de configuração que será injetado no HTML
-const config = {
-  targetUrl,
-  siteKey
-};
+const requiredFiles = [
+  'index.html',
+  'manifest.json',
+  'sw.js',
+  'icon-192.png',
+  'icon-512.png'
+];
 
-// Cria a pasta dist se não existir
-const distDir = path.join(__dirname, 'dist');
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir, { recursive: true });
+let missing = false;
+requiredFiles.forEach((file) => {
+  const filePath = path.join(__dirname, file);
+  if (!fs.existsSync(filePath)) {
+    console.warn(`[Aviso] Arquivo não encontrado: ${file}`);
+    missing = true;
+  }
+});
+
+if (!missing) {
+  console.log('Todos os ativos do PWA SCOACI foram verificados com sucesso.');
+} else {
+  console.log('Build concluído com alertas de ativos ausentes.');
 }
-
-// Lê o arquivo index.html original (vamos assumir que ele está na raiz ou em src/index.html)
-// Se você salvou o HTML na raiz, ajuste a leitura para 'index.html'
-const htmlTemplatePath = path.join(__dirname, 'index.html');
-let htmlContent = fs.readFileSync(htmlTemplatePath, 'utf8');
-
-// Substitui a tag __APP_CONFIG__ pelo JSON gerado
-htmlContent = htmlContent.replace('__APP_CONFIG__', JSON.stringify(config));
-
-// Escreve o arquivo final processado dentro da pasta dist/
-fs.writeFileSync(path.join(distDir, 'index.html'), htmlContent, 'utf8');
-
-console.log('Build concluído com sucesso! Variáveis injetadas.');
