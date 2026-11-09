@@ -11,13 +11,11 @@ if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
 }
 
-// Injeta a configuração no HTML original
 const htmlTemplatePath = path.join(__dirname, 'index.html');
 let htmlContent = fs.readFileSync(htmlTemplatePath, 'utf8');
 htmlContent = htmlContent.replace('__APP_CONFIG__', JSON.stringify(config));
 fs.writeFileSync(path.join(distDir, 'index.html'), htmlContent, 'utf8');
 
-// Copia assets estáticos para a pasta dist
 const assetsToCopy = ['manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png'];
 assetsToCopy.forEach((file) => {
   const src = path.join(__dirname, file);
@@ -27,4 +25,4 @@ assetsToCopy.forEach((file) => {
   }
 });
 
-console.log('Build do SCOACI concluído com sucesso em dist/!');
+console.log('Build do SCOACI concluído em dist/!');

@@ -1,10 +1,7 @@
-# SCOACI — Sistema de Controle Operacional do Arquivo Corrente e Intermediário
+# SCOACI — PWA & Sistema de Segurança
 
-Aplicação de segurança e redirecionamento de acessos protegida por Cloudflare Turnstile com suporte a PWA.
+Para transformar este projeto em um arquivo `.apk` compilado para envio aos usuários ou hospedagem:
 
-## 🚀 Variáveis de Ambiente no Vercel
-
-Defina as seguintes variáveis nas configurações do projeto na Vercel (**Settings > Environment Variables**):
-
-- `TARGET_URL`: URL final para onde o usuário será redirecionado após passar na verificação.
-- `TURNSTILE_SITE_KEY`: Chave do site gerada no Cloudflare Turnstile.
+1. Acesse https://www.pwabuilder.com/
+2. Insira a URL: `https://redirect-beige-mu.vercel.app`
+3. Baixe o pacote Android (`.apk`).

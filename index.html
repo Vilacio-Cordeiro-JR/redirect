@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
-  <title>SCOACI - Verificação de Segurança</title>
+  <title>SCOACI - Sistema de Controle Operacional</title>
 
   <!-- PWA Metadata -->
   <link rel="manifest" href="/manifest.json" />
@@ -15,33 +15,88 @@
   <meta name="apple-mobile-web-app-title" content="SCOACI" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
 
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background-color: #0a1128;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: rgba(15, 27, 61, 0.85);
+      padding: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+    }
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .icon-box {
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border-radius: 12px; background-color: rgba(59, 130, 246, 0.15); color: #60a5fa;
+    }
+    .icon-box svg { width: 24px; height: 24px; }
+    .title { font-size: 1.125rem; font-weight: 600; color: #ffffff; }
+    .subtitle { font-size: 0.875rem; color: #94a3b8; }
+    #widget { margin-bottom: 24px; min-height: 65px; display: flex; justify-content: center; }
+    .btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 12px; background-color: #2563eb; padding: 12px 16px;
+      font-size: 0.875rem; font-weight: 600; color: #ffffff; border: none; cursor: pointer;
+      transition: background-color 0.2s; text-decoration: none;
+    }
+    .btn:hover:not(:disabled) { background-color: #1d4ed8; }
+    .btn:disabled { background-color: #334155; color: #94a3b8; cursor: not-allowed; }
+    .btn-secondary {
+      background-color: transparent; border: 1px solid rgba(255,255,255,0.2); margin-top: 12px;
+    }
+    .btn-secondary:hover { background-color: rgba(255,255,255,0.05); }
+    .error {
+      margin-top: 16px; padding: 8px 12px; border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, 0.3); background-color: rgba(239, 68, 68, 0.1);
+      font-size: 0.875rem; color: #fca5a5; display: none;
+    }
+    .footer-text { margin-top: 24px; text-align: center; font-size: 0.75rem; color: #64748b; }
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 
-  <!-- Substituído no build (build.js) com as variáveis de ambiente do Vercel -->
+  <!-- Injetado no build pelo Vercel -->
   <script id="app-config" type="application/json">__APP_CONFIG__</script>
 </head>
-<body class="min-h-screen bg-[#0a1128] text-slate-200 antialiased flex items-center justify-center p-4">
-  <main class="w-full max-w-md rounded-2xl border border-white/10 bg-[#0f1b3d]/80 p-8 shadow-2xl shadow-black/40 backdrop-blur">
-    <div class="mb-6 flex items-center gap-3">
-      <div id="icon" class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/15 text-blue-400">
-        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+<body>
+  <main class="card">
+    <div class="header">
+      <div id="icon" class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
       </div>
       <div>
-        <h1 class="text-lg font-semibold text-white">SCOACI</h1>
-        <p id="status" class="text-sm text-slate-400" role="status" aria-live="polite">Verificação de Segurança</p>
+        <h1 class="title">SCOACI</h1>
+        <p id="status" class="subtitle" role="status" aria-live="polite">Verificação de Segurança</p>
       </div>
     </div>
 
-    <div id="widget" class="mb-6 flex min-h-[65px] justify-center"></div>
+    <div id="widget"></div>
 
-    <button id="go" type="button" disabled
-      class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
-      <svg id="spinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"/><path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-90"/></svg>
+    <button id="go" type="button" disabled class="btn">
+      <span id="spinner" class="spinner"></span>
       <span id="go-label">Continuar</span>
     </button>
 
-    <p id="error" class="mt-4 hidden rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300" role="alert"></p>
-    <p class="mt-6 text-center text-xs text-slate-500">Protegido por Cloudflare Turnstile</p>
+    <!-- Botão de Instalação do App PWA no Celular -->
+    <button id="btn-install" type="button" class="btn btn-secondary" style="display: none;">
+      📲 Instalar App SCOACI no Celular
+    </button>
+
+    <p id="error" class="error" role="alert"></p>
+    <p class="footer-text">Protegido por Cloudflare Turnstile</p>
   </main>
 
   <script type="module">
@@ -51,7 +106,7 @@
     const $ = (id) => document.getElementById(id);
     const ui = {
       status: $('status'), icon: $('icon'), go: $('go'), goLabel: $('go-label'),
-      spinner: $('spinner'), error: $('error'), widget: $('widget'),
+      spinner: $('spinner'), error: $('error'), widget: $('widget'), btnInstall: $('btn-install')
     };
 
     const MESSAGES = {
@@ -60,23 +115,16 @@
       success:   'Verificação concluída.',
       error:     'Não foi possível verificar.',
     };
-    const ICON_TONE = {
-      idle: 'bg-blue-500/15 text-blue-400',
-      verifying: 'bg-blue-500/15 text-blue-400',
-      success: 'bg-emerald-500/15 text-emerald-400',
-      error: 'bg-red-500/15 text-red-400',
-    };
 
     const state = { phase: 'idle', token: null, redirecting: false, errorMsg: '' };
 
     function render() {
       const { phase, redirecting, errorMsg } = state;
       ui.status.textContent = redirecting ? 'Redirecionando com segurança…' : MESSAGES[phase];
-      ui.icon.className = `flex h-11 w-11 items-center justify-center rounded-xl ${ICON_TONE[phase]}`;
       ui.go.disabled = phase !== 'success' || redirecting;
-      ui.spinner.classList.toggle('hidden', !redirecting);
+      ui.spinner.style.display = redirecting ? 'inline-block' : 'none';
       ui.goLabel.textContent = redirecting ? 'Redirecionando…' : 'Continuar';
-      ui.error.classList.toggle('hidden', phase !== 'error');
+      ui.error.style.display = phase === 'error' ? 'block' : 'none';
       ui.error.textContent = errorMsg;
     }
 
@@ -112,16 +160,15 @@
         return setState({ phase: 'error', errorMsg: 'Serviço mal configurado. Verifique as variáveis de ambiente.' });
       }
 
-      let widgetId;
       try {
         const turnstile = await loadTurnstile();
-        widgetId = turnstile.render(ui.widget, {
+        turnstile.render(ui.widget, {
           sitekey: config.siteKey,
           theme: 'dark',
           callback: (token) => setState({ phase: 'success', token, errorMsg: '' }),
           'before-interactive-callback': () => setState({ phase: 'verifying' }),
           'expired-callback': () => setState({ phase: 'verifying', token: null }),
-          'error-callback': () => setState({ phase: 'error', token: null, errorMsg: 'Erro na verificação. Recarregue a página e tente novamente.' }),
+          'error-callback': () => setState({ phase: 'error', token: null, errorMsg: 'Erro na verificação. Recarregue a página.' }),
         });
         if (state.phase === 'idle') setState({ phase: 'verifying' });
       } catch (err) {
@@ -137,11 +184,28 @@
 
     init();
 
+    // PWA Install Prompt Handler
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      ui.btnInstall.style.display = 'block';
+    });
+
+    ui.btnInstall.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          ui.btnInstall.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('SCOACI Service Worker registrado:', reg.scope))
-          .catch(err => console.error('Falha ao registrar Service Worker:', err));
+        navigator.serviceWorker.register('/sw.js').catch(console.error);
       });
     }
   </script>
