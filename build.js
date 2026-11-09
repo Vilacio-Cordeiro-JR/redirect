@@ -1,27 +1,30 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('Iniciando verificação dos arquivos do PWA SCOACI...');
+const targetUrl = process.env.TARGET_URL || 'https://exemplo.com';
+const siteKey = process.env.TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
 
-const requiredFiles = [
-  'index.html',
-  'manifest.json',
-  'sw.js',
-  'icon-192.png',
-  'icon-512.png'
-];
+const config = { targetUrl, siteKey };
 
-let missing = false;
-requiredFiles.forEach((file) => {
-  const filePath = path.join(__dirname, file);
-  if (!fs.existsSync(filePath)) {
-    console.warn(`[Aviso] Arquivo não encontrado: ${file}`);
-    missing = true;
+const distDir = path.join(__dirname, 'dist');
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir, { recursive: true });
+}
+
+// Injeta a configuração no HTML original
+const htmlTemplatePath = path.join(__dirname, 'index.html');
+let htmlContent = fs.readFileSync(htmlTemplatePath, 'utf8');
+htmlContent = htmlContent.replace('__APP_CONFIG__', JSON.stringify(config));
+fs.writeFileSync(path.join(distDir, 'index.html'), htmlContent, 'utf8');
+
+// Copia assets estáticos para a pasta dist
+const assetsToCopy = ['manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png'];
+assetsToCopy.forEach((file) => {
+  const src = path.join(__dirname, file);
+  const dest = path.join(distDir, file);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, dest);
   }
 });
 
-if (!missing) {
-  console.log('Todos os ativos do PWA SCOACI foram verificados com sucesso.');
-} else {
-  console.log('Build concluído com alertas de ativos ausentes.');
-}
+console.log('Build do SCOACI concluído com sucesso em dist/!');
