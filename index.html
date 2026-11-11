@@ -160,7 +160,7 @@
     </main>
   </div>
 
-  <script type="module">
+<script type="module">
     const REDIRECT_DELAY_MS = 600;
     const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
@@ -182,6 +182,9 @@
 
     // Verifica se está rodando dentro do App PWA Instalado (Standalone)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    // Deteta se o dispositivo é iOS / iPhone
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
     function render() {
       const { phase, redirecting, errorMsg } = state;
@@ -208,12 +211,10 @@
 
     function abrirAplicacao(targetUrl) {
       if (isStandalone) {
-        // Se estiver no app instalado, abre via iframe 100% de tela cheia sem barra de navegador
         ui.webView.style.display = 'none';
         ui.appFrame.src = targetUrl;
         ui.appFrame.style.display = 'block';
       } else {
-        // Se estiver no navegador comum, faz o redirecionamento
         window.location.replace(targetUrl);
       }
     }
@@ -236,7 +237,6 @@
         return setState({ phase: 'error', errorMsg: 'Erro de configuração. Verifique a URL de destino.' });
       }
 
-      // Se rodar dentro do App Instalado (PWA), pula o captcha e abre o sistema direto
       if (isStandalone) {
         abrirAplicacao(config.targetUrl);
         return;
@@ -266,12 +266,24 @@
 
     init();
 
-    // PWA Install Prompt Handler
+    // Gestão de Instalação PWA
     let deferredPrompt;
+
+    if (!isStandalone) {
+      if (isIOS) {
+        // No iOS Safari, exibe o botão com instrução de como adicionar à tela de início
+        ui.btnInstall.style.display = 'flex';
+        ui.btnInstall.innerHTML = '📲 No iPhone: toque em <b>Compartilhar</b> <br>e depois em <b>"Adicionar à Tela de Início"</b>';
+        ui.btnInstall.style.fontSize = '0.75rem';
+        ui.btnInstall.style.lineHeight = '1.2';
+      }
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       ui.btnInstall.style.display = 'flex';
+      ui.btnInstall.innerHTML = '📲 Instalar App no Celular';
     });
 
     ui.btnInstall.addEventListener('click', async () => {
