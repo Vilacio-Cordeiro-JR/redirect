@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>SCOACI - Sistema de Controle Operacional</title>
+
+  <!-- PWA Metadata -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0a192f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SCOACI" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0a192f;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Container para Web (Landing Page) */
+    .web-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 40%),
+                  radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.12), transparent 50%),
+                  #0a192f;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 23, 42, 0.75);
+      padding: 28px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+
+    .logo-wrapper {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo-wrapper img { width: 44px; height: 44px; object-fit: contain; }
+
+    .title { font-size: 1.35rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; }
+    .subtitle { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; margin-bottom: 20px; }
+
+    #widget { margin-bottom: 20px; min-height: 65px; display: flex; justify-content: center; }
+
+    .btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 12px;
+      background: #2563eb;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
+    .btn:disabled { background: #1e293b; color: #64748b; cursor: not-allowed; box-shadow: none; }
+
+    .btn-install {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      margin-top: 12px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+    .btn-install:hover { background: rgba(16, 185, 129, 0.25); }
+
+    .error {
+      margin-top: 14px; padding: 10px; border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1);
+      font-size: 0.8rem; color: #fca5a5; display: none;
+    }
+
+    .footer-text { margin-top: 20px; font-size: 0.75rem; color: #64748b; }
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Frame nativo para quando executado em modo Standalone (App sem barra) */
+    #app-frame {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 99999;
+      background: #0a1128;
+    }
+  </style>
+
+  <script id="app-config" type="application/json">__APP_CONFIG__</script>
+</head>
+<body>
+
+  <!-- Iframe em Tela Cheia para o PWA (Elimina barra de navegação externa) -->
+  <iframe id="app-frame" title="SCOACI App"></iframe>
+
+  <!-- Landing Page Web -->
+  <div id="web-view" class="web-container">
+    <main class="card">
+      <div class="logo-wrapper">
+        <img src="/icon-192.png" alt="Logo SCOACI" />
+      </div>
+      
+      <h1 class="title">SCOACI</h1>
+      <p id="status" class="subtitle" role="status" aria-live="polite">Verificação de Segurança</p>
+
+      <div id="widget"></div>
+
+      <button id="go" type="button" disabled class="btn">
+        <span id="spinner" class="spinner"></span>
+        <span id="go-label">Acessar Sistema</span>
+      </button>
+
+      <!-- Botão de Instalação do App PWA no Celular -->
+      <button id="btn-install" type="button" class="btn btn-install" style="display: none;">
+        📲 Instalar App no Celular
+      </button>
+
+      <p id="error" class="error" role="alert"></p>
+      <p class="footer-text">Sistema de Controle Operacional • Arquivo Corrente e Intermediário</p>
+    </main>
+  </div>
+
+  <script type="module">
+    const REDIRECT_DELAY_MS = 600;
+    const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+
+    const $ = (id) => document.getElementById(id);
+    const ui = {
+      status: $('status'), go: $('go'), goLabel: $('go-label'),
+      spinner: $('spinner'), error: $('error'), widget: $('widget'),
+      btnInstall: $('btn-install'), appFrame: $('app-frame'), webView: $('web-view')
+    };
+
+    const MESSAGES = {
+      idle:      'Carregando verificação…',
+      verifying: 'Confirme a verificação abaixo.',
+      success:   'Acesso verificado.',
+      error:     'Erro ao validar acesso.',
+    };
+
+    const state = { phase: 'idle', token: null, redirecting: false, errorMsg: '' };
+
+    // Verifica se está rodando dentro do App PWA Instalado (Standalone)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    function render() {
+      const { phase, redirecting, errorMsg } = state;
+      ui.status.textContent = redirecting ? 'Conectando ao servidor…' : MESSAGES[phase];
+      ui.go.disabled = phase !== 'success' || redirecting;
+      ui.spinner.style.display = redirecting ? 'inline-block' : 'none';
+      ui.goLabel.textContent = redirecting ? 'Abrindo…' : 'Acessar Sistema';
+      ui.error.style.display = phase === 'error' ? 'block' : 'none';
+      ui.error.textContent = errorMsg;
+    }
+
+    function setState(patch) { Object.assign(state, patch); render(); }
+
+    function readConfig() {
+      try {
+        const cfg = JSON.parse($('app-config').textContent);
+        const url = new URL(cfg.targetUrl);
+        if (!['https:', 'http:'].includes(url.protocol)) throw new Error('protocolo');
+        return { targetUrl: url.href, siteKey: cfg.siteKey || '' };
+      } catch {
+        return null;
+      }
+    }
+
+    function abrirAplicacao(targetUrl) {
+      if (isStandalone) {
+        // Se estiver no app instalado, abre via iframe 100% de tela cheia sem barra de navegador
+        ui.webView.style.display = 'none';
+        ui.appFrame.src = targetUrl;
+        ui.appFrame.style.display = 'block';
+      } else {
+        // Se estiver no navegador comum, faz o redirecionamento
+        window.location.replace(targetUrl);
+      }
+    }
+
+    function loadTurnstile() {
+      return new Promise((resolve, reject) => {
+        if (window.turnstile) return resolve(window.turnstile);
+        const s = document.createElement('script');
+        s.src = TURNSTILE_SRC; s.async = true;
+        s.onload = () => resolve(window.turnstile);
+        s.onerror = () => reject(new Error('Falha ao carregar o Turnstile.'));
+        document.head.append(s);
+      });
+    }
+
+    async function init() {
+      render();
+      const config = readConfig();
+      if (!config) {
+        return setState({ phase: 'error', errorMsg: 'Erro de configuração. Verifique a URL de destino.' });
+      }
+
+      // Se rodar dentro do App Instalado (PWA), pula o captcha e abre o sistema direto
+      if (isStandalone) {
+        abrirAplicacao(config.targetUrl);
+        return;
+      }
+
+      try {
+        const turnstile = await loadTurnstile();
+        turnstile.render(ui.widget, {
+          sitekey: config.siteKey || '1x00000000000000000000AA',
+          theme: 'dark',
+          callback: (token) => setState({ phase: 'success', token, errorMsg: '' }),
+          'before-interactive-callback': () => setState({ phase: 'verifying' }),
+          'expired-callback': () => setState({ phase: 'verifying', token: null }),
+          'error-callback': () => setState({ phase: 'error', token: null, errorMsg: 'Falha no captcha.' }),
+        });
+        if (state.phase === 'idle') setState({ phase: 'verifying' });
+      } catch (err) {
+        return setState({ phase: 'error', errorMsg: err.message });
+      }
+
+      ui.go.addEventListener('click', () => {
+        if (state.phase !== 'success' || !state.token || state.redirecting) return;
+        setState({ redirecting: true });
+        setTimeout(() => abrirAplicacao(config.targetUrl), REDIRECT_DELAY_MS);
+      });
+    }
+
+    init();
+
+    // PWA Install Prompt Handler
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      ui.btnInstall.style.display = 'flex';
+    });
+
+    ui.btnInstall.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          ui.btnInstall.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>

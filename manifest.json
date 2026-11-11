@@ -1,0 +1,25 @@
+{
+  "short_name": "SCOACI",
+  "name": "SCOACI - Sistema de Controle Operacional",
+  "description": "Sistema de Controle Operacional do Arquivo Corrente e Intermediário",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "background_color": "#0a192f",
+  "theme_color": "#0a192f",
+  "display": "standalone",
+  "orientation": "portrait"
+}

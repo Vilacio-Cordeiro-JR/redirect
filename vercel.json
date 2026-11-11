@@ -1,0 +1,18 @@
+{
+  "buildCommand": "node build.js",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self' 'unsafe-inline' https://challenges.cloudflare.com/; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com/; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://challenges.cloudflare.com/; frame-src https://challenges.cloudflare.com/; connect-src 'self' https://challenges.cloudflare.com/;" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
+  ]
+}
